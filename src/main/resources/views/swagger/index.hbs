@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swagger-Multi-Service</title>
+
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@{{version}}/favicon-32x32.png">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@{{version}}/swagger-ui.css">
+
+    <script src="https://unpkg.com/swagger-ui-dist@{{version}}/swagger-ui-standalone-preset.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@{{version}}/swagger-ui-bundle.js"></script>
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script>
+        const UrlMutatorPlugin = (system) => ({
+          rootInjects: {
+            setServer: (server) => {
+              const jsonSpec = system.getState().toJSON().spec.json;
+              const servers = server;
+                      // [{url: server}];
+              const newJsonSpec = Object.assign({}, jsonSpec, { servers });
+
+              return system.specActions.updateJsonSpec(newJsonSpec);
+            }
+          }
+        });
+
+        window.onload = function() {
+            var ui = SwaggerUIBundle({
+                urls: [{{#each urls}}
+                    {
+                        name: "{{name}}",
+                        url: "{{url}}"
+                    }{{#unless @last}},{{/unless}}{{/each}}
+                ],
+                dom_id: '#swagger-ui',
+                deepLinking: {{deepLinking}},
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIStandalonePreset
+                ],
+                plugins: [
+                    SwaggerUIBundle.plugins.DownloadUrl,
+                    UrlMutatorPlugin
+                ],
+                layout: "{{layout}}",
+                onComplete: () => {
+                    window.ui.setServer(
+                        [{{#each urls}}
+                            {
+                                url: "{{apiUrl}}"
+                            }{{#unless @last}},{{/unless}}{{/each}}
+                        ]
+                    )
+                }
+            });
+            window.ui = ui
+        }
+    </script>
+</body>
+</html>
